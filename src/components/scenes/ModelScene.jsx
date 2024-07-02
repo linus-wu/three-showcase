@@ -16,7 +16,8 @@ const ModelScene = () => {
 
   const lastLoadingPercentage = Math.min(
     loadingPercentage.rolex,
-    loadingPercentage.table
+    loadingPercentage.table,
+    100
   );
 
   useEffect(() => {
