@@ -8,21 +8,8 @@ import TouchIcon from "../icons/TouchIcon";
 
 const ModelScene = () => {
   const modelSceneContainer = useRef(null);
-  const [isLoading, setIsLoading] = useState({
-    rolex: true,
-    table: true,
-  });
-  const [loadingPercentage, setLoadingPercentage] = useState({
-    rolex: 0,
-    table: 0,
-  });
-
-  const isAllModelLoaded = !isLoading.rolex && !isLoading.table;
-
-  const lastLoadingPercentage = Math.min(
-    loadingPercentage.rolex,
-    loadingPercentage.table
-  );
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadingPercentage, setLoadingPercentage] = useState(0);
 
   useEffect(() => {
     if (!modelSceneContainer.current) return;
@@ -59,52 +46,57 @@ const ModelScene = () => {
 
     const loader = new GLTFLoader();
 
-    const handleLoadingProgress = (key, progressEvent) => {
-      setLoadingPercentage((prev) => ({
-        ...prev,
-        [key]: ((progressEvent.loaded / progressEvent.total) * 100).toFixed(0),
-      }));
+    const loadModel = (url) => {
+      return new Promise((resolve, reject) => {
+        loader.load(
+          url,
+          (gltf) => {
+            resolve(gltf.scene);
+          },
+          (progressEvent) => {
+            setLoadingPercentage((prev) => {
+              const newPercentage =
+                prev + (progressEvent.loaded / progressEvent.total) * 50;
+              return Math.min(newPercentage, 100).toFixed(0);
+            });
+          },
+          (error) => {
+            console.error("An error happened", error);
+            reject(error);
+          }
+        );
+      });
     };
 
     let rolex;
-    loader.load(
-      `${import.meta.env.VITE_BASE_PATH}/models/rolex.glb`,
-      function (gltf) {
-        rolex = gltf.scene;
+    let table;
+
+    const loadModels = async () => {
+      try {
+        const [rolexModel, tableModel] = await Promise.all([
+          loadModel(`${import.meta.env.VITE_BASE_PATH}/models/rolex.glb`),
+          loadModel(`${import.meta.env.VITE_BASE_PATH}/models/table.glb`),
+        ]);
+
+        rolex = rolexModel;
+        table = tableModel;
+
         rolex.position.y = -0.43;
         rolex.scale.set(8, 8, 8);
         scene.add(rolex);
 
-        setIsLoading((prev) => ({ ...prev, rolex: false }));
-      },
-      function (progressEvent) {
-        handleLoadingProgress("rolex", progressEvent);
-      },
-      function (error) {
-        console.error("An error happened", error);
-        setIsLoading(false);
-      }
-    );
-
-    let table;
-    loader.load(
-      `${import.meta.env.VITE_BASE_PATH}/models/table.glb`,
-      function (gltf) {
-        table = gltf.scene;
         table.position.y = -3;
         table.scale.set(1.5, 1.5, 1.5);
         scene.add(table);
 
-        setIsLoading((prev) => ({ ...prev, table: false }));
-      },
-      function (progressEvent) {
-        handleLoadingProgress("table", progressEvent);
-      },
-      function (error) {
-        console.error("An error happened", error);
+        setIsLoading(false);
+      } catch (error) {
+        console.error("An error occurred while loading models", error);
         setIsLoading(false);
       }
-    );
+    };
+
+    loadModels();
 
     const diskGeometry = new THREE.CylinderGeometry(0.5, 0.5, 0.02, 32);
     const diskMaterial = new THREE.MeshStandardMaterial({
@@ -112,7 +104,6 @@ const ModelScene = () => {
     });
     const disk = new THREE.Mesh(diskGeometry, diskMaterial);
     disk.position.y = -0.45;
-
     scene.add(disk);
 
     const cubeGeometry = new THREE.BoxGeometry(1.5, 1.5, 1.5);
@@ -163,8 +154,8 @@ const ModelScene = () => {
 
   return (
     <div className="relative">
-      {!isAllModelLoaded ? (
-        <ProgressLayout loadingPercentage={lastLoadingPercentage} />
+      {isLoading ? (
+        <ProgressLayout loadingPercentage={loadingPercentage} />
       ) : (
         <TouchIcon />
       )}
