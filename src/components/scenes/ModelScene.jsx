@@ -68,7 +68,7 @@ const ModelScene = () => {
 
     let rolex;
     loader.load(
-      "/models/rolex.glb",
+      `${import.meta.env.VITE_BASE_PATH}/models/rolex.glb`,
       function (gltf) {
         rolex = gltf.scene;
         rolex.position.y = -0.43;
@@ -88,7 +88,7 @@ const ModelScene = () => {
 
     let table;
     loader.load(
-      "/models/table.glb",
+      `${import.meta.env.VITE_BASE_PATH}/models/table.glb`,
       function (gltf) {
         table = gltf.scene;
         table.position.y = -3;

@@ -60,9 +60,12 @@ const TextureScene = () => {
 
     const earthGeometry = new THREE.SphereGeometry(1, 32, 32);
     const earthMaterial = new THREE.MeshStandardMaterial({
-      map: loader.load("/textures/2k_earth_daymap.jpg", () => {
-        setIsLoading((prev) => ({ ...prev, earth: false }));
-      }),
+      map: loader.load(
+        `${import.meta.env.VITE_BASE_PATH}/textures/2k_earth_daymap.jpg`,
+        () => {
+          setIsLoading((prev) => ({ ...prev, earth: false }));
+        }
+      ),
     });
     const earth = new THREE.Mesh(earthGeometry, earthMaterial);
     earth.position.set(0, 0, 0);
@@ -70,9 +73,12 @@ const TextureScene = () => {
 
     const moonGeometry = new THREE.SphereGeometry(0.27, 32, 32);
     const moonMaterial = new THREE.MeshStandardMaterial({
-      map: loader.load("/textures/2k_moon.jpg", () => {
-        setIsLoading((prev) => ({ ...prev, moon: false }));
-      }),
+      map: loader.load(
+        `${import.meta.env.VITE_BASE_PATH}/textures/2k_moon.jpg`,
+        () => {
+          setIsLoading((prev) => ({ ...prev, moon: false }));
+        }
+      ),
     });
     const moon = new THREE.Mesh(moonGeometry, moonMaterial);
     moon.position.set(5, 0, 0);
