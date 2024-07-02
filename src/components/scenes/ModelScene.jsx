@@ -9,7 +9,15 @@ import TouchIcon from "../icons/TouchIcon";
 const ModelScene = () => {
   const modelSceneContainer = useRef(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [loadingPercentage, setLoadingPercentage] = useState(0);
+  const [loadingPercentage, setLoadingPercentage] = useState({
+    rolex: 0,
+    table: 0,
+  });
+
+  const lastLoadingPercentage = Math.min(
+    loadingPercentage.rolex,
+    loadingPercentage.table
+  );
 
   useEffect(() => {
     if (!modelSceneContainer.current) return;
@@ -46,7 +54,7 @@ const ModelScene = () => {
 
     const loader = new GLTFLoader();
 
-    const loadModel = (url) => {
+    const loadModel = (url, key) => {
       return new Promise((resolve, reject) => {
         loader.load(
           url,
@@ -54,11 +62,13 @@ const ModelScene = () => {
             resolve(gltf.scene);
           },
           (progressEvent) => {
-            setLoadingPercentage((prev) => {
-              const newPercentage =
-                prev + (progressEvent.loaded / progressEvent.total) * 50;
-              return Math.min(newPercentage, 100).toFixed(0);
-            });
+            setLoadingPercentage((prev) => ({
+              ...prev,
+              [key]: (
+                (progressEvent.loaded / progressEvent.total) *
+                100
+              ).toFixed(0),
+            }));
           },
           (error) => {
             console.error("An error happened", error);
@@ -74,8 +84,14 @@ const ModelScene = () => {
     const loadModels = async () => {
       try {
         const [rolexModel, tableModel] = await Promise.all([
-          loadModel(`${import.meta.env.VITE_BASE_PATH}/models/rolex.glb`),
-          loadModel(`${import.meta.env.VITE_BASE_PATH}/models/table.glb`),
+          loadModel(
+            `${import.meta.env.VITE_BASE_PATH}/models/rolex.glb`,
+            "rolex"
+          ),
+          loadModel(
+            `${import.meta.env.VITE_BASE_PATH}/models/table.glb`,
+            "table"
+          ),
         ]);
 
         rolex = rolexModel;
@@ -155,7 +171,7 @@ const ModelScene = () => {
   return (
     <div className="relative">
       {isLoading ? (
-        <ProgressLayout loadingPercentage={loadingPercentage} />
+        <ProgressLayout loadingPercentage={lastLoadingPercentage} />
       ) : (
         <TouchIcon />
       )}
